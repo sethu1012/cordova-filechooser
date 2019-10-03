@@ -61,11 +61,17 @@ public class FileChooser extends CordovaPlugin {
 
                 if (resultCode == Activity.RESULT_OK) {
                     JSONArray filePaths = new JSONArray();
-                    int itemCount = data.getClipData().getItemCount();
-                    for (int i = 0; i < itemCount; i++) {
+                    if (data.getClipData() != null) {
+                        int itemCount = data.getClipData().getItemCount();
+                        for (int i = 0; i < itemCount; i++) {
+                            JSONObject file = new JSONObject();
+                            file.put("path", data.getClipData().getItemAt(i).getUri().toString());
+                            filePaths.put(file);
+                        }
+                    } else if (data.getData() != null) {
                         JSONObject file = new JSONObject();
-                        file.put("path", data.getClipData().getItemAt(i).getUri().toString());
-                        filePaths.put(file);
+                        file.put("path", data.getData().toString());
+                        filePaths.put(file);                        
                     }
 
                     if (filePaths.length() > 0) {
