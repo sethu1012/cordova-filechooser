@@ -42,9 +42,10 @@ public class FileChooser extends CordovaPlugin {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType(uri_filter);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
 
-        Intent chooser = Intent.createChooser(intent, "Select File");
+        Intent chooser = Intent.createChooser(intent, "Select File(s)");
         cordova.startActivityForResult(this, chooser, PICK_FILE_REQUEST);
 
         PluginResult pluginResult = new PluginResult(PluginResult.Status.NO_RESULT);
@@ -55,32 +56,39 @@ public class FileChooser extends CordovaPlugin {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        try {
+            if (requestCode == PICK_FILE_REQUEST && callback != null) {
 
-        if (requestCode == PICK_FILE_REQUEST && callback != null) {
+                if (resultCode == Activity.RESULT_OK) {
+                    JSONArray filePaths = new JSONArray();
+                    int itemCount = data.getClipData().getItemCount();
+                    for (int i = 0; i < itemCount; i++) {
+                        JSONObject file = new JSONObject();
+                        file.put("path", data.getClipData().getItemAt(i).getUri().toString());
+                        filePaths.put(file);
+                    }
 
-            if (resultCode == Activity.RESULT_OK) {
+                    if (filePaths.length() > 0) {
+                        Log.w(TAG, filePaths.toString());
+                        callback.success(filePaths.toString());
 
-                Uri uri = data.getData();
+                    } else {
 
-                if (uri != null) {
+                        callback.error("No file(s) selected");
 
-                    Log.w(TAG, uri.toString());
-                    callback.success(uri.toString());
+                    }
 
+                } else if (resultCode == Activity.RESULT_CANCELED) {
+                    // keep this string the same as in iOS document picker plugin
+                    // https://github.com/iampossible/Cordova-DocPicker
+                    callback.error("User canceled.");
                 } else {
 
-                    callback.error("File uri was null");
-
+                    callback.error(resultCode);
                 }
-
-            } else if (resultCode == Activity.RESULT_CANCELED) {
-                // keep this string the same as in iOS document picker plugin
-                // https://github.com/iampossible/Cordova-DocPicker
-                callback.error("User canceled.");
-            } else {
-
-                callback.error(resultCode);
             }
+        } catch (JSONException je) {
+            callback.error(resultCode);
         }
     }
 }
