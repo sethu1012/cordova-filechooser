@@ -68,21 +68,20 @@ public class FileChooser extends CordovaPlugin {
                             file.put("path", data.getClipData().getItemAt(i).getUri().toString());
                             filePaths.put(file);
                         }
-                    } else if (data.getData() != null) {
-                        JSONObject file = new JSONObject();
-                        file.put("path", data.getData().toString());
-                        filePaths.put(file);                        
-                    }
-
-                    if (filePaths.length() > 0) {
                         Log.w(TAG, filePaths.toString());
                         callback.success(filePaths.toString());
-
-                    } else {
-
-                        callback.error("No file(s) selected");
-
+                    } else if (data.getData() != null) {
+                        Log.w(TAG, data.getData().toString());
+                        callback.success(data.getData().toString());                    
                     }
+
+                    // if (filePaths.length() > 0) {
+
+                    // } else {
+
+                    //     callback.error("No file(s) selected");
+
+                    // }
 
                 } else if (resultCode == Activity.RESULT_CANCELED) {
                     // keep this string the same as in iOS document picker plugin
